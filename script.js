@@ -109,21 +109,24 @@ async function removerTarefa(id) {
 // RENDER
 // ===============================
 async function renderizarTarefas() {
-  const tarefasExistentes = document.querySelectorAll(".tarefa");
-  tarefasExistentes.forEach((tarefa) => tarefa.remove());
-
   await carregarTarefasBackend();
-  ordenarTarefas();
 
-  const inputContainer = document.querySelector(".input-container");
+  const lista = document.querySelector(".lista-tarefas");
+  lista.innerHTML = "";
 
-  tarefas.forEach((tarefa) => {
-    const elemento = criarElementoTarefa(tarefa);
-    inputContainer.parentNode.insertBefore(
-      elemento,
-      inputContainer.nextSibling,
-    );
-  });
+  // abertas em cima
+  tarefas
+    .filter((t) => !t.done)
+    .forEach((tarefa) => {
+      lista.appendChild(criarElementoTarefa(tarefa));
+    });
+
+  // concluídas embaixo
+  tarefas
+    .filter((t) => t.done)
+    .forEach((tarefa) => {
+      lista.appendChild(criarElementoTarefa(tarefa));
+    });
 }
 
 // ===============================
