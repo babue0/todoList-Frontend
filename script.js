@@ -4,11 +4,32 @@
 const API_URL = "http://localhost:8080/todos";
 
 // ===============================
+// USER (anônimo)
+// ===============================
+function getUserId() {
+  let userId = localStorage.getItem("userId");
+
+  if (!userId) {
+    userId = crypto.randomUUID();
+    localStorage.setItem("userId", userId);
+  }
+
+  return userId;
+}
+
+function authHeaders(extra = {}) {
+  return {
+    "Content-Type": "application/json",
+    "X-USER-ID": getUserId(),
+    ...extra,
+  };
+}
+
+// ===============================
 // ELEMENTOS DO DOM
 // ===============================
 const inputTarefa = document.querySelector(".campo-texto");
 const botaoAdicionar = document.querySelector(".botao-texto");
-const container = document.querySelector(".container");
 
 // ===============================
 // ESTADO
@@ -19,16 +40,17 @@ let tarefas = [];
 // BACKEND (API)
 // ===============================
 async function carregarTarefasBackend() {
-  const response = await fetch(API_URL);
+  const response = await fetch(API_URL, {
+    headers: authHeaders(),
+  });
+
   tarefas = await response.json();
 }
 
 async function criarTarefaBackend(texto) {
   await fetch(API_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: authHeaders(),
     body: JSON.stringify({ title: texto }),
   });
 }
@@ -36,22 +58,14 @@ async function criarTarefaBackend(texto) {
 async function atualizarTarefaBackend(id, done) {
   await fetch(`${API_URL}/${id}/done?done=${done}`, {
     method: "PUT",
+    headers: authHeaders(),
   });
 }
 
 async function removerTarefaBackend(id) {
   await fetch(`${API_URL}/${id}`, {
     method: "DELETE",
-  });
-}
-
-// ===============================
-// ORDENAÇÃO
-// ===============================
-function ordenarTarefas() {
-  tarefas.sort((a, b) => {
-    if (a.done === b.done) return 0;
-    return a.done ? 1 : -1; // abertas em cima
+    headers: authHeaders(),
   });
 }
 
@@ -67,10 +81,18 @@ function criarElementoTarefa(tarefa) {
       ${tarefa.title}
     </span>
     <div class="botoes-tarefa">
-      <button class="botao-concluir" onclick="toggleTarefa(${tarefa.id}, ${tarefa.done})">
+      <button 
+        class="botao-concluir" 
+        onclick="toggleTarefa(${tarefa.id}, ${tarefa.done})"
+      >
         ${tarefa.done ? "↩️" : "✅"}
       </button>
-      <button class="botao-remover" onclick="removerTarefa(${tarefa.id})">🗑️</button>
+      <button 
+        class="botao-remover" 
+        onclick="removerTarefa(${tarefa.id})"
+      >
+        🗑️
+      </button>
     </div>
   `;
 
@@ -89,6 +111,7 @@ async function adicionarTarefa() {
   }
 
   await criarTarefaBackend(texto);
+
   inputTarefa.value = "";
   inputTarefa.focus();
 
@@ -134,7 +157,7 @@ async function renderizarTarefas() {
 // ===============================
 botaoAdicionar.addEventListener("click", adicionarTarefa);
 
-inputTarefa.addEventListener("keypress", function (e) {
+inputTarefa.addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
     adicionarTarefa();
   }
