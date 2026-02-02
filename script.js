@@ -1,7 +1,7 @@
 // ===============================
 // CONFIG
 // ===============================
-const API_URL = "https://todolist-backend-p57y.onrender.com";
+const API_URL = "https://todolist-backend-p57y.onrender.com/todos";
 
 // ===============================
 // USER (anônimo)
